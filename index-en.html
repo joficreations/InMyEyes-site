@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InMyEyes – Told by your dog</title>
+  <meta name="description" content="InMyEyes lets your dog tell you what it sees. Take a photo and get a small story — written from inside your dog's calm, curious world.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #EFE8DD;
+      --cream:    #FFF8E0;
+      --tape:     #F5D47B;
+      --tape2:    #F0D985;
+      --brown:    #261A0D;
+      --brown-mid:#5C3D1E;
+      --brown-lt: #8B6340;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--brown);
+      font-family: 'Lato', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Paper grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.6;
+    }
+
+    /* ── PAW PRINTS CANVAS ── */
+    #pawCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── LANGUAGE SWITCHER ── */
+    .lang-switch {
+      position: fixed;
+      top: 1.2rem;
+      right: 1.4rem;
+      z-index: 1001;
+      display: flex;
+      gap: 2px;
+      background: rgba(38,26,13,0.08);
+      border-radius: 50px;
+      padding: 3px;
+    }
+    .lang-switch a {
+      font-family: 'Lato', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 400;
+      letter-spacing: 0.06em;
+      color: var(--brown-lt);
+      text-decoration: none;
+      padding: 0.3rem 0.7rem;
+      border-radius: 50px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .lang-switch a.active { background: var(--brown); color: var(--cream); }
+    .lang-switch a:not(.active):hover { color: var(--brown-mid); }
+
+    /* ── LAYOUT ── */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HERO ── */
+    header {
+      text-align: center;
+      padding: 4rem 1.5rem 3rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .app-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 22px;
+      background: var(--cream);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      box-shadow: 0 4px 18px rgba(38,26,13,0.15), 0 1px 4px rgba(38,26,13,0.10);
+      margin-bottom: 1.5rem;
+    }
+
+    header h1 {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(2.8rem, 8vw, 4.5rem);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--brown);
+      line-height: 1;
+      margin-bottom: 0.6rem;
+    }
+
+    header .subtitle {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.1rem, 3.5vw, 1.4rem);
+      color: var(--brown-mid);
+      margin-bottom: 1.8rem;
+    }
+
+    header .tagline {
+      font-size: clamp(1rem, 2.5vw, 1.15rem);
+      color: var(--brown-lt);
+      max-width: 480px;
+      margin: 0 auto 2.2rem;
+      line-height: 1.7;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      background: var(--brown);
+      color: var(--cream);
+      font-family: 'Lato', sans-serif;
+      font-weight: 400;
+      font-size: 1rem;
+      padding: 0.85rem 2.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: background 0.2s, transform 0.15s;
+      box-shadow: 0 3px 12px rgba(38,26,13,0.18);
+    }
+    .cta-btn:hover { background: var(--brown-mid); transform: translateY(-2px); }
+
+    /* ── SCREENSHOTS ── */
+    .screenshots-section {
+      padding: 3rem 0 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .screenshots-section h2 {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      text-align: center;
+      color: var(--brown-mid);
+      margin-bottom: 2.5rem;
+    }
+
+    .phone-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2.5rem;
+      padding: 1rem 1rem 2.5rem;
+      align-items: flex-end;
+    }
+
+    /* iPhone frame */
+    .iphone {
+      position: relative;
+      width: 186px;
+      background: #111;
+      border-radius: 44px;
+      padding: 8px;
+      box-shadow:
+        0 0 0 1px #2a2a2a,
+        0 16px 48px rgba(0,0,0,0.38),
+        0 4px 10px rgba(0,0,0,0.22);
+      flex-shrink: 0;
+    }
+
+    .iphone:nth-child(1) { transform: rotate(-2.1deg); }
+    .iphone:nth-child(2) { transform: rotate(1.4deg); }
+    .iphone:nth-child(3) { transform: rotate(-1.0deg); }
+    .iphone:nth-child(4) { transform: rotate(2.3deg); }
+
+    /* Screen area */
+    .iphone-screen {
+      border-radius: 36px;
+      overflow: hidden;
+      position: relative;
+      background: #000;
+    }
+
+    .iphone-screen img {
+      width: 100%;
+      aspect-ratio: 9/19.5;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Dynamic Island */
+    .iphone-screen::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 72px;
+      height: 24px;
+      background: #111;
+      border-radius: 12px;
+      z-index: 2;
+    }
+
+    /* Side button */
+    .iphone::after {
+      content: '';
+      position: absolute;
+      right: -3px;
+      top: 90px;
+      width: 3px;
+      height: 58px;
+      background: #2a2a2a;
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* ── FEATURES ── */
+    .features-section {
+      padding: 2rem 0 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .features-section h2 {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.6rem, 4vw, 2.2rem);
+      text-align: center;
+      color: var(--brown-mid);
+      margin-bottom: 2.5rem;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.8rem;
+    }
+
+    .feature-card {
+      background: var(--cream);
+      border-radius: 4px;
+      padding: 1.8rem 1.5rem;
+      box-shadow: 1px 3px 10px rgba(38,26,13,0.10);
+      text-align: center;
+    }
+
+    .feature-card .icon {
+      font-size: 2.2rem;
+      margin-bottom: 0.8rem;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-family: 'Caveat', cursive;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--brown);
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--brown-lt);
+      line-height: 1.6;
+    }
+
+    /* ── QUOTE ── */
+    .quote-section {
+      padding: 2rem 1.5rem 3.5rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quote-card {
+      display: inline-block;
+      background: var(--cream);
+      max-width: 560px;
+      padding: 2.2rem 2.5rem;
+      border-radius: 3px;
+      box-shadow: 2px 4px 16px rgba(38,26,13,0.12);
+      position: relative;
+      transform: rotate(-0.5deg);
+    }
+
+    .quote-card::before,
+    .quote-card::after {
+      content: '';
+      position: absolute;
+      top: -12px;
+      width: 52px;
+      height: 22px;
+      background: var(--tape);
+      opacity: 0.8;
+      border-radius: 2px;
+    }
+    .quote-card::before { left: 22px; transform: rotate(-2deg); }
+    .quote-card::after  { right: 22px; transform: rotate(2.5deg); background: var(--tape2); }
+
+    .quote-card blockquote {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(1.15rem, 3vw, 1.4rem);
+      font-weight: 400;
+      line-height: 1.6;
+      color: var(--brown);
+      font-style: normal;
+    }
+
+    .quote-card cite {
+      display: block;
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: var(--brown-lt);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ── SECOND CTA ── */
+    .cta-section {
+      padding: 1rem 1.5rem 4rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid rgba(38,26,13,0.12);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--brown-lt);
+      position: relative;
+      z-index: 1;
+    }
+
+    footer a { color: var(--brown-mid); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer .sep { margin: 0 0.6rem; opacity: 0.4; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 480px) {
+      .iphone { width: 140px; border-radius: 34px; }
+      .iphone-screen { border-radius: 26px; }
+      .phone-row { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Language switcher -->
+<div class="lang-switch">
+  <a href="index.html">SV</a>
+  <a href="index-en.html" class="active">EN</a>
+</div>
+
+<!-- Walking paw prints canvas -->
+<canvas id="pawCanvas" aria-hidden="true"></canvas>
+
+<!-- Hero -->
+<header>
+  <div class="app-icon">🐾</div>
+  <h1>InMyEyes</h1>
+  <p class="subtitle">Told by your dog</p>
+  <p class="tagline">
+    Take a photo. Let your dog tell you what it sees.<br>
+    A small story, from inside the world that matters most.
+  </p>
+  <a href="#" class="cta-btn">Download on the App Store</a>
+</header>
+
+<!-- Screenshots -->
+<!-- Add your English screenshots as screen1.png–screen4.png in screenshots-en/ -->
+<section class="screenshots-section">
+  <div class="container">
+    <h2>See how it looks</h2>
+    <div class="phone-row">
+      <div class="iphone"><div class="iphone-screen">
+        <img src="screenshots-en/screen1.png" alt="Screenshot 1 – InMyEyes app">
+      </div></div>
+      <div class="iphone"><div class="iphone-screen">
+        <img src="screenshots-en/screen2.png" alt="Screenshot 2 – InMyEyes app">
+      </div></div>
+      <div class="iphone"><div class="iphone-screen">
+        <img src="screenshots-en/screen3.png" alt="Screenshot 3 – InMyEyes app">
+      </div></div>
+      <div class="iphone"><div class="iphone-screen">
+        <img src="screenshots-en/screen4.png" alt="Screenshot 4 – InMyEyes app">
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features-section">
+  <div class="container">
+    <h2>What the app does</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="icon">📸</span>
+        <h3>Take a photo</h3>
+        <p>Choose from your gallery or take a new one. It doesn't have to be perfect — it just has to be real.</p>
+      </div>
+      <div class="feature-card">
+        <span class="icon">✍️</span>
+        <h3>Your dog narrates</h3>
+        <p>A small text appears — calm, curious, a little puzzled. Exactly how your dog would have seen it.</p>
+      </div>
+      <div class="feature-card">
+        <span class="icon">🖼️</span>
+        <h3>Save &amp; share</h3>
+        <p>The image and text are saved as a polaroid card. Share with those who understand that dogs see everything.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quote card -->
+<section class="quote-section">
+  <div class="quote-card">
+    <blockquote>
+      "I see it all. That floor. That bone I put away somewhere. And you, always you. Let me tell you."
+    </blockquote>
+    <cite>— Your dog</cite>
+  </div>
+</section>
+
+<!-- Second CTA -->
+<section class="cta-section">
+  <a href="#" class="cta-btn">Get InMyEyes</a>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>
+    &copy; 2026 Jofi Creations AB
+    <span class="sep">·</span>
+    <a href="privacy-en.html">Privacy Policy</a>
+    <span class="sep">·</span>
+    <a href="mailto:support@joficreations.se">Contact</a>
+  </p>
+</footer>
+
+<script>
+  // Walking paw prints — diagonal dog gait
+  const canvas = document.getElementById('pawCanvas');
+  const ctx    = canvas.getContext('2d');
+
+  const TOTAL_PAWS  = 9;
+  const MAX_VISIBLE = 5;
+  const CYCLE_LEN   = 7.5;
+  const STEP_INC    = 0.014;
+  const STEP_TIMES  = [0, 0.18, 0.72, 0.90, 1.44, 1.62, 2.16, 2.34, 2.88];
+  const T_VALUES    = [0.00, 0.12, 0.25, 0.37, 0.50, 0.62, 0.75, 0.87, 1.00];
+  const FREQ        = 1.5;
+  const AMPLITUDE   = 25;
+  const MARGIN      = 20;
+
+  let progress   = 0;
+  let phase      = Math.random() * Math.PI * 2;
+  let goingRight = Math.random() > 0.5;
+  let jitterX    = (Math.random() - 0.5) * 120;
+  let jitterY    = (Math.random() - 0.5) * 60;
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  function drawFrame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const startX = (goingRight ? -20 : W + 20) + jitterX;
+    const startY = H * 1.12 + jitterY;
+    const endX   = (goingRight ? W - MARGIN : MARGIN) + jitterX * 0.3;
+    const endY   = H * 0.82;
+
+    const dx  = endX - startX;
+    const dy  = endY - startY;
+    const len = Math.hypot(dx, dy);
+    const ux  = dx / len;
+    const uy  = dy / len;
+
+    for (let i = 0; i < TOTAL_PAWS; i++) {
+      const age = progress - STEP_TIMES[i];
+      if (age <= 0 || age >= MAX_VISIBLE) continue;
+
+      const RAMP  = 0.3;
+      const alpha = (age < RAMP
+        ? age / RAMP
+        : 1.0 - (age - RAMP) / (MAX_VISIBLE - RAMP)) * 0.22;
+      if (alpha <= 0) continue;
+
+      const t      = T_VALUES[i];
+      const sinVal = Math.sin(t * Math.PI * FREQ + phase);
+      const baseX  = startX + dx * t + sinVal * AMPLITUDE * (-uy);
+      const baseY  = startY + dy * t + sinVal * AMPLITUDE * ux;
+
+      const cosVal   = Math.cos(t * Math.PI * FREQ + phase);
+      const tangentX = dx + cosVal * Math.PI * FREQ * AMPLITUDE * (-uy);
+      const tangentY = dy + cosVal * Math.PI * FREQ * AMPLITUDE * ux;
+      const tLen     = Math.hypot(tangentX, tangentY);
+      const tX = tangentX / tLen;
+      const tY = tangentY / tLen;
+
+      const beat    = i % 4;
+      const isRight = (beat === 0 || beat === 3);
+      const isFront = (beat === 0 || beat === 2);
+
+      const trackW = isFront ? 20 : 12;
+      const side   = isRight ? trackW : -trackW;
+      const size   = isFront ? 22 : 19;
+
+      const jitter = Math.sin(i * 2.3) * 4;
+      const posX   = baseX + side * (-tY) + jitter * tX;
+      const posY   = baseY + side * tX    + jitter * tY;
+
+      const rotation = Math.atan2(tX, -tY) + (isRight ? -5 : 5) * Math.PI / 180;
+
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(posX, posY);
+      ctx.rotate(rotation);
+      if (!isRight) ctx.scale(-1, 1);
+      ctx.font = `${size}px serif`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🐾', 0, 0);
+      ctx.restore();
+    }
+
+    progress += STEP_INC;
+    if (progress >= CYCLE_LEN) {
+      phase      = Math.random() * Math.PI * 2;
+      jitterX    = (Math.random() - 0.5) * 120;
+      jitterY    = (Math.random() - 0.5) * 60;
+      goingRight = Math.random() > 0.5;
+      progress   = 0;
+    }
+
+    requestAnimationFrame(drawFrame);
+  }
+
+  requestAnimationFrame(drawFrame);
+</script>
+</body>
+</html>
