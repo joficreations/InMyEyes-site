@@ -42,14 +42,33 @@
       opacity: 0.6;
     }
 
-    /* ── PAW PRINTS CANVAS ── */
-    #pawCanvas {
+    /* ── PAW PRINTS ── */
+    #pawTrail {
       position: fixed;
       inset: 0;
-      width: 100%;
-      height: 100%;
       pointer-events: none;
       z-index: 0;
+    }
+    #pawTrail span {
+      position: absolute;
+      display: block;
+      opacity: 0;
+      background-color: #7a4f30;
+      width: var(--w, 21px);
+      height: calc(var(--w, 21px) * 1.15);
+      -webkit-mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 46'><ellipse cx='20' cy='34' rx='12' ry='10'/><ellipse cx='7' cy='20' rx='5.5' ry='6'/><ellipse cx='15' cy='13' rx='5' ry='6'/><ellipse cx='25' cy='13' rx='5' ry='6'/><ellipse cx='33' cy='20' rx='5.5' ry='6'/></svg>");
+      mask-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 46'><ellipse cx='20' cy='34' rx='12' ry='10'/><ellipse cx='7' cy='20' rx='5.5' ry='6'/><ellipse cx='15' cy='13' rx='5' ry='6'/><ellipse cx='25' cy='13' rx='5' ry='6'/><ellipse cx='33' cy='20' rx='5.5' ry='6'/></svg>");
+      -webkit-mask-size: 100% 100%;
+      mask-size: 100% 100%;
+    }
+    #pawTrail span.active {
+      animation: pawStep 2s ease-out forwards;
+    }
+    @keyframes pawStep {
+      0%   { opacity: 0;    }
+      3%   { opacity: 0.45; }
+      18%  { opacity: 0.42; }
+      100% { opacity: 0;    }
     }
 
     /* ── LAYOUT ── */
@@ -376,8 +395,25 @@
   <a href="index-en.html">EN</a>
 </div>
 
-<!-- Walking paw prints canvas -->
-<canvas id="pawCanvas" aria-hidden="true"></canvas>
+<!-- Walking paw prints -->
+<div id="pawTrail" aria-hidden="true">
+  <span style="--w:21px"></span>
+  <span style="--w:18px"></span>
+  <span style="--w:22px"></span>
+  <span style="--w:19px"></span>
+  <span style="--w:21px"></span>
+  <span style="--w:18px"></span>
+  <span style="--w:21px"></span>
+  <span style="--w:19px"></span>
+  <span style="--w:22px"></span>
+  <span style="--w:18px"></span>
+  <span style="--w:21px"></span>
+  <span style="--w:19px"></span>
+  <span style="--w:22px"></span>
+  <span style="--w:18px"></span>
+  <span style="--w:21px"></span>
+  <span style="--w:19px"></span>
+</div>
 
 <!-- Hero -->
 <header>
@@ -463,116 +499,77 @@
 </footer>
 
 <script>
-  // Walking paw prints — realistic canvas-drawn paws, correct dog gait
-  const canvas = document.getElementById('pawCanvas');
-  const ctx    = canvas.getContext('2d');
+  (function () {
+    const spans = Array.from(document.querySelectorAll('#pawTrail span'));
+    const TOTAL = spans.length;
+    const STEP  = 400;   // ms between each paw print
+    const PAUSE = 1400;  // ms pause between trails
 
-  // Gait: diagonal walk — RF(0) LH(1) LF(2) RH(3) repeating
-  // step times refined for natural cadence: pair offset ~0.18, pair interval ~0.72
-  const TOTAL_PAWS  = 9;
-  const MAX_VISIBLE = 5;
-  const CYCLE_LEN   = 7.5;
-  const STEP_INC    = 0.014;   // slower = calmer walking pace
-  const STEP_TIMES  = [0, 0.18, 0.72, 0.90, 1.44, 1.62, 2.16, 2.34, 2.88];
-  const T_VALUES    = [0.00, 0.12, 0.25, 0.37, 0.50, 0.62, 0.75, 0.87, 1.00];
-  const FREQ        = 1.5;
-  const AMPLITUDE   = 25;
-  const MARGIN      = 20;
+    // dir=1 left→right, dir=-1 right→left
+    // y0/y1 = vertical position at start/end (fraction of screen height)
+    const TRAILS = [
+      { dir:  1, y0: 0.82, y1: 0.76, amp: 0.040, freq: 1.2 },  // lower, gentle
+      { dir: -1, y0: 0.77, y1: 0.84, amp: 0.030, freq: 1.0 },  // lower, R→L
+      { dir:  1, y0: 0.90, y1: 0.62, amp: 0.045, freq: 1.5 },  // steep diagonal up
+      { dir: -1, y0: 0.58, y1: 0.44, amp: 0.035, freq: 1.2 },  // upper, R→L diagonal
+      { dir:  1, y0: 0.52, y1: 0.48, amp: 0.025, freq: 0.9 },  // middle, gentle
+      { dir: -1, y0: 0.88, y1: 0.50, amp: 0.040, freq: 1.3 },  // steep diagonal R→L
+    ];
 
-  let progress   = 0;
-  let phase      = Math.random() * Math.PI * 2;
-  let goingRight = Math.random() > 0.5;
-  let jitterX    = (Math.random() - 0.5) * 120;
-  let jitterY    = (Math.random() - 0.5) * 60;
+    let ti = 0;
 
-  function resize() {
-    canvas.width  = window.innerWidth;
-    canvas.height = window.innerHeight;
-  }
-  window.addEventListener('resize', resize);
-  resize();
+    function place(tr) {
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      spans.forEach((el, i) => {
+        const t       = i / (TOTAL - 1);
+        const tPath   = tr.dir === 1 ? t : 1 - t;
+        const cx      = W * (0.05 + tPath * 0.90);
+        const cy      = H * (tr.y0 + t * (tr.y1 - tr.y0))
+                      + H * tr.amp * Math.sin(t * Math.PI * tr.freq);
 
-  function drawFrame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const dxdt    = W * 0.90 * tr.dir;
+        const dydt    = H * (tr.y1 - tr.y0)
+                      + H * tr.amp * Math.PI * tr.freq
+                        * Math.cos(t * Math.PI * tr.freq);
+        const ang     = Math.atan2(dydt, dxdt);
+        const perpX   = -Math.sin(ang);
+        const perpY   =  Math.cos(ang);
 
-    const W = canvas.width;
-    const H = canvas.height;
+        const beat    = i % 4;
+        const isRight = beat === 0 || beat === 3;
+        const isFront = beat === 0 || beat === 2;
+        const side    = (isFront ? 20 : 14) * (isRight ? 1 : -1);
 
-    const startX = (goingRight ? -20 : W + 20) + jitterX;
-    const startY = H * 1.12 + jitterY;
-    const endX   = (goingRight ? W - MARGIN : MARGIN) + jitterX * 0.3;
-    const endY   = H * 0.82;
+        const rot = Math.PI / 2 + ang + (isRight ? -0.14 : 0.14);
 
-    const dx  = endX - startX;
-    const dy  = endY - startY;
-    const len = Math.hypot(dx, dy);
-    const ux  = dx / len;
-    const uy  = dy / len;
-
-    for (let i = 0; i < TOTAL_PAWS; i++) {
-      const age = progress - STEP_TIMES[i];
-      if (age <= 0 || age >= MAX_VISIBLE) continue;
-
-      const RAMP  = 0.3;
-      const alpha = (age < RAMP
-        ? age / RAMP
-        : 1.0 - (age - RAMP) / (MAX_VISIBLE - RAMP)) * 0.22;
-      if (alpha <= 0) continue;
-
-      const t      = T_VALUES[i];
-      const sinVal = Math.sin(t * Math.PI * FREQ + phase);
-      const baseX  = startX + dx * t + sinVal * AMPLITUDE * (-uy);
-      const baseY  = startY + dy * t + sinVal * AMPLITUDE * ux;
-
-      const cosVal   = Math.cos(t * Math.PI * FREQ + phase);
-      const tangentX = dx + cosVal * Math.PI * FREQ * AMPLITUDE * (-uy);
-      const tangentY = dy + cosVal * Math.PI * FREQ * AMPLITUDE * ux;
-      const tLen     = Math.hypot(tangentX, tangentY);
-      const tX = tangentX / tLen;
-      const tY = tangentY / tLen;
-
-      // beat 0=RF, 1=LH, 2=LF, 3=RH  (diagonal walk gait)
-      const beat    = i % 4;
-      const isRight = (beat === 0 || beat === 3);
-      const isFront = (beat === 0 || beat === 2);
-
-      // Front legs stance wider than hind
-      const trackW = isFront ? 20 : 12;
-      const side   = isRight ? trackW : -trackW;
-      const size   = isFront ? 22 : 19;
-
-      const jitter = Math.sin(i * 2.3) * 4;
-      const posX   = baseX + side * (-tY) + jitter * tX;
-      const posY   = baseY + side * tX    + jitter * tY;
-
-      // Rotation: face direction of travel + slight toe-in
-      const rotation = Math.atan2(tX, -tY) + (isRight ? -5 : 5) * Math.PI / 180;
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.translate(posX, posY);
-      ctx.rotate(rotation);
-      if (!isRight) ctx.scale(-1, 1);
-      ctx.font = `${size}px serif`;
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('🐾', 0, 0);
-      ctx.restore();
+        el.style.left      = (cx + side * perpX) + 'px';
+        el.style.top       = (cy + side * perpY) + 'px';
+        el.style.transform = `translate(-50%,-50%) rotate(${rot}rad)`;
+      });
     }
 
-    progress += STEP_INC;
-    if (progress >= CYCLE_LEN) {
-      phase      = Math.random() * Math.PI * 2;
-      jitterX    = (Math.random() - 0.5) * 120;
-      jitterY    = (Math.random() - 0.5) * 60;
-      goingRight = Math.random() > 0.5;
-      progress   = 0;
+    function runTrail() {
+      const tr = TRAILS[ti];
+      place(tr);
+
+      spans.forEach((el, i) => {
+        setTimeout(() => {
+          el.classList.remove('active');
+          void el.offsetWidth;        // restart animation
+          el.classList.add('active');
+        }, i * STEP);
+      });
+
+      // After last paw has fully faded, switch to next trail
+      setTimeout(() => {
+        ti = (ti + 1) % TRAILS.length;
+        runTrail();
+      }, (TOTAL - 1) * STEP + 2000 + PAUSE);
     }
 
-    requestAnimationFrame(drawFrame);
-  }
-
-  requestAnimationFrame(drawFrame);
+    runTrail();
+  })();
 </script>
 </body>
 </html>
