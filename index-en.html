@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="AppIcon.png">
+  <link rel="apple-touch-icon" href="AppIcon.png">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -203,6 +205,16 @@
       margin: 0 auto 0;
       max-width: 860px;
     }
+
+    .app-icon {
+      width: 90px;
+      height: 90px;
+      border-radius: 20px;
+      overflow: hidden;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 4px 18px rgba(38,26,13,0.18);
+    }
+    .app-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .hero-collage .iphone { flex-shrink: 0; }
 
@@ -489,6 +501,7 @@
 
 <!-- Hero -->
 <header>
+  <div class="app-icon"><img src="AppIcon.png" alt="InMyEyes"></div>
   <h1>InMyEyes</h1>
   <p class="subtitle">Told by your dog</p>
 
