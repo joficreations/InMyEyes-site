@@ -75,10 +75,9 @@
 
     /* ── LANGUAGE SWITCHER ── */
     .lang-switch {
-      position: fixed;
-      top: 1.2rem;
-      right: 1.4rem;
-      z-index: 1001;
+      position: absolute;
+      top: 1rem;
+      right: 1.2rem;
       display: flex;
       gap: 0.5rem;
     }
@@ -113,6 +112,7 @@
       background-color: #d6cfc4;
       padding: 2.5rem 1.5rem 0.5rem;
       margin-bottom: 2.5rem;
+      position: relative;
     }
 
     header h1 {
@@ -230,21 +230,16 @@
 
     .polaroid--bc { transform: rotate(-3deg); }
 
-    .cta-btn {
+    .appstore-badge {
       display: inline-block;
-      background: var(--brown);
-      color: var(--cream);
-      font-family: 'Lato', sans-serif;
-      font-weight: 400;
-      font-size: 1rem;
-      padding: 0.85rem 2.2rem;
-      border-radius: 50px;
-      text-decoration: none;
-      letter-spacing: 0.04em;
-      transition: background 0.2s, transform 0.15s;
-      box-shadow: 0 3px 12px rgba(38,26,13,0.18);
     }
-    .cta-btn:hover { background: var(--brown-mid); transform: translateY(-2px); }
+    .appstore-badge img {
+      height: 54px;
+      display: block;
+      margin: 0 auto;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .appstore-badge:hover img { opacity: 0.8; transform: translateY(-2px); }
 
     /* ── SCREENSHOTS ── */
     .screenshots-section {
@@ -475,12 +470,6 @@
 </head>
 <body>
 
-<!-- Language switcher -->
-<div class="lang-switch">
-  <a href="index.html">🇸🇪</a>
-  <a href="index-en.html" class="active">🇬🇧</a>
-</div>
-
 <!-- Walking paw prints -->
 <div id="pawTrail" aria-hidden="true">
   <span style="--w:21px"></span>
@@ -504,6 +493,10 @@
 <!-- Hero -->
 <header>
   <div class="hero-title">
+    <div class="lang-switch">
+      <a href="index.html">🇸🇪</a>
+      <a href="index-en.html" class="active">🇬🇧</a>
+    </div>
     <div class="app-icon"><img src="AppIcon.png" alt="InMyEyes"></div>
     <h1>InMyEyes</h1>
     <p class="subtitle">Told by your dog</p>
@@ -565,10 +558,13 @@
   </div>
 </section>
 
-<!-- Second CTA -->
-<section class="cta-section">
-  <a href="#" class="cta-btn">Get InMyEyes</a>
-</section>
+
+<!-- App Store badge -->
+<div style="text-align: center; padding: 2rem 0 3rem;">
+  <a href="#" class="appstore-badge">
+    <img src="AppStoreBadges/US/Download_on_App_Store/Black_lockup/SVG/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" alt="Download on the App Store">
+  </a>
+</div>
 
 <!-- Footer -->
 <footer>
