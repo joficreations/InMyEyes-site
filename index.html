@@ -463,15 +463,17 @@
       .hero-collage { gap: 0.8rem; }
       .polaroid--tl { transform: rotate(-5deg) translateY(20px); }
       .polaroid--tr { transform: rotate(3deg)  translateY(-15px); }
-      .hero-collage-sub { padding-left: 40px; }
-      .iphone { width: 180px; border-radius: 38px; }
-      .iphone-screen { border-radius: 30px; }
-      .polaroid { width: clamp(100px, 22vw, 140px); }
+      .hero-collage-sub { padding-left: 40px; margin-bottom: 0.8rem; }
+      .iphone { width: 160px; border-radius: 36px; padding: 5px; }
+      .iphone-screen { border-radius: 28px; }
+      .iphone-screen::before { width: 34px; height: 11px; border-radius: 6px; }
+      .polaroid { width: clamp(135px, 31vw, 165px); }
     }
     @media (max-width: 480px) {
-      .iphone { width: 140px; border-radius: 34px; }
-      .iphone-screen { border-radius: 26px; }
-      .polaroid { width: clamp(80px, 18vw, 110px); }
+      .iphone { width: 130px; border-radius: 30px; padding: 4px; }
+      .iphone-screen { border-radius: 23px; }
+      .iphone-screen::before { width: 28px; height: 9px; border-radius: 5px; }
+      .polaroid { width: clamp(110px, 26vw, 130px); }
     }
   </style>
 </head>
