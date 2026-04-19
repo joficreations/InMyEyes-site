@@ -80,24 +80,17 @@
       right: 1.4rem;
       z-index: 1001;
       display: flex;
-      gap: 2px;
-      background: rgba(38,26,13,0.08);
-      border-radius: 50px;
-      padding: 3px;
+      gap: 0.5rem;
     }
     .lang-switch a {
-      font-family: 'Lato', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 400;
-      letter-spacing: 0.06em;
-      color: var(--brown-lt);
+      font-size: 1.6rem;
       text-decoration: none;
-      padding: 0.3rem 0.7rem;
-      border-radius: 50px;
-      transition: background 0.15s, color 0.15s;
+      line-height: 1;
+      opacity: 0.4;
+      transition: opacity 0.15s, transform 0.15s;
     }
-    .lang-switch a.active { background: var(--brown); color: var(--cream); }
-    .lang-switch a:not(.active):hover { color: var(--brown-mid); }
+    .lang-switch a.active { opacity: 1; }
+    .lang-switch a:not(.active):hover { opacity: 0.7; transform: scale(1.1); }
 
     /* ── LAYOUT ── */
     .container {
@@ -111,9 +104,15 @@
     /* ── HERO ── */
     header {
       text-align: center;
-      padding: 4rem 1.5rem 3rem;
       position: relative;
       z-index: 1;
+      padding: 0 0 1.5rem;
+    }
+
+    .hero-title {
+      background-color: #d6cfc4;
+      padding: 2.5rem 1.5rem 0.5rem;
+      margin-bottom: 2.5rem;
     }
 
     header h1 {
@@ -445,6 +444,7 @@
       padding: 2rem 1.5rem;
       text-align: center;
       font-size: 0.82rem;
+      background-color: #d6cfc4;
       color: var(--brown-lt);
       position: relative;
       z-index: 1;
@@ -477,8 +477,8 @@
 
 <!-- Language switcher -->
 <div class="lang-switch">
-  <a href="index.html">SV</a>
-  <a href="index-en.html" class="active">EN</a>
+  <a href="index.html">🇸🇪</a>
+  <a href="index-en.html" class="active">🇬🇧</a>
 </div>
 
 <!-- Walking paw prints -->
@@ -503,9 +503,11 @@
 
 <!-- Hero -->
 <header>
-  <div class="app-icon"><img src="AppIcon.png" alt="InMyEyes"></div>
-  <h1>InMyEyes</h1>
-  <p class="subtitle">Told by your dog</p>
+  <div class="hero-title">
+    <div class="app-icon"><img src="AppIcon.png" alt="InMyEyes"></div>
+    <h1>InMyEyes</h1>
+    <p class="subtitle">Told by your dog</p>
+  </div>
 
   <div class="hero-collage">
     <div class="polaroid polaroid--tl">
